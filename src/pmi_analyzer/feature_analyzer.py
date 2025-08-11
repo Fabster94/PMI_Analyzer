@@ -4,7 +4,7 @@ Feature importance and analysis module
 import numpy as np
 import pandas as pd
 from sklearn.inspection import permutation_importance
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple
 import logging
 
 logger = logging.getLogger(__name__)
@@ -120,37 +120,26 @@ class FeatureAnalyzer:
             DataFrame with group-level importance scores
         """
         groups = self.identify_feature_groups()
-        group_importance = {}
         
+        # Pivot to have groups as rows and processes as columns
+        reshaped_data = {}
         for group_name, features in groups.items():
             # Get features that exist in importance_df
             existing_features = [f for f in features if f in importance_df.index]
             
             if existing_features:
+                row_data = {}
                 # Calculate mean importance for each process
                 for process in self.process_names:
                     if process in importance_df.columns:
-                        group_importance[f'{group_name}_{process}'] = \
-                            importance_df.loc[existing_features, process].mean()
+                        row_data[process] = importance_df.loc[existing_features, process].mean()
                 
                 # Overall average
                 if 'average' in importance_df.columns:
-                    group_importance[f'{group_name}_average'] = \
-                        importance_df.loc[existing_features, 'average'].mean()
-        
-        # Create DataFrame and reshape
-        group_df = pd.Series(group_importance).to_frame('importance')
-        
-        # Pivot to have groups as rows and processes as columns
-        reshaped_data = {}
-        for group in groups.keys():
-            row_data = {}
-            for process in self.process_names + ['average']:
-                key = f'{group}_{process}'
-                if key in group_importance:
-                    row_data[process] = group_importance[key]
-            if row_data:
-                reshaped_data[group] = row_data
+                    row_data['average'] = importance_df.loc[existing_features, 'average'].mean()
+                
+                if row_data:
+                    reshaped_data[group_name] = row_data
         
         return pd.DataFrame(reshaped_data).T
     
