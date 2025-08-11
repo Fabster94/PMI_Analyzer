@@ -1,0 +1,16 @@
+data:
+  input_path: "data/raw/pmi_features_with_processes.csv"
+  output_dir: "results"
+
+model:
+  n_estimators: 100
+  max_depth: 10
+  min_samples_split: 10
+  min_samples_leaf: 5
+  random_state: 42
+  test_size: 0.2
+  cv_folds: 5
+
+visualization:
+  top_n_features: 20
+  figure_dir: "results/figures"
